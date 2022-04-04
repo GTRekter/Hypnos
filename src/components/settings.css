@@ -1,0 +1,8 @@
+.card.card-break {
+    border-color: #1B1F24;
+    border-radius: 8px;
+    border-width: 2px;
+}
+.card.card-break:hover {
+    border-color: #fff;
+}
