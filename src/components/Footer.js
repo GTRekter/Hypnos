@@ -13,7 +13,7 @@ export default class Footer extends Component {
                                 © 2021, made with
                                 <FontAwesomeIcon className='mx-1' icon={faHeart} />
                                 by
-                                <a href="https://ivanporta.net/" rel="noreferrer" className="font-weight-bold text mx-1 text-decoration-none text-white" target="_blank">Ivan Porta</a>
+                                <a href="https://ivanporta.net/" rel="noreferrer" className="font-weight-bold text mx-1 text-decoration-none text-white" target="_blank">Ivan Porta</a> (<small>Icons made by <a href="https://www.freepik.com" title="Freepik" className="font-weight-bold text mx-1 text-decoration-none text-white" target="_blank"  rel="noreferrer">Freepik</a> and <a href="https://www.flaticon.com/authors/justicon" title="justicon" className="font-weight-bold text mx-1 text-decoration-none text-white" target="_blank" rel="noreferrer">Justicon</a>)</small>
                             </div>
                         </div>
                     </div>

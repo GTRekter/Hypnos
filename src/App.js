@@ -10,12 +10,10 @@ export default class App extends Component {
     render() {
         return (
             <Layout>
-                {/* <Router> */}
-                    <Route exact path='/' component={Home} />
-                    <Route exact path='/settings' component={Settings} />
-                    <Route exact path='/summary/:timestamp/:name' component={Summary} />
-                    <Route exact path='/mobile/:timestamp/:name' component={Mobile} />
-                {/* </Router> */}
+                <Route exact path='/' component={Home} />
+                <Route exact path='/settings' component={Settings} />
+                <Route exact path='/summary/:timestamp/:name' component={Summary} />
+                <Route exact path='/mobile/:timestamp/:name' component={Mobile} />
             </Layout>
         );
     }

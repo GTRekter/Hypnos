@@ -14,15 +14,15 @@ export default class Summary extends Component {
         let timestamp = parseInt(this.props.match.params.timestamp);
         const rendererCountdown = ({ hours, minutes, seconds, completed }) => {
             if (completed) {
-                return "00:00:00";
+                return <span className="text-danger">00:00:00</span>;
             } else {
                 hours = hours < 10 ? "0" + hours : hours;
                 minutes = minutes < 10 ? "0" + minutes : minutes;
                 seconds = seconds < 10 ? "0" + seconds : seconds;
-                let style = "";
-                if(minutes < 5) {
+                let style = "text-white";
+                if(hours === 0 && minutes < 5) {
                     style = "text-warning";
-                } else if(minutes < 2) {
+                } else if(hours === 0 && minutes < 2) {
                     style = "text-danger";
                 }
                 return <span className={style}>{hours}:{minutes}:{seconds}</span>;
