@@ -12,16 +12,18 @@ export default class Summary extends Component {
         this.onTick = this.onTick.bind(this);
     }
     onTick(time) {
-        if(time.minutes < 5) {
-            this.setState({
-                backgroundClass: 'bg-warning',
-                textClass: 'text-dark'
-            });
-        } else if(time.minutes < 2) {
-            this.setState({
-                backgroundClass: 'bg-danger',
-                textClass: 'text-white'
-            });
+        if (time.hours === 0) {
+            if(time.minutes > 2 && time.minutes < 5) {
+                this.setState({
+                    backgroundClass: 'bg-warning',
+                    textClass: 'text-dark'
+                });
+            } else if(time.minutes < 2) {
+                this.setState({
+                    backgroundClass: 'bg-danger',
+                    textClass: 'text-white'
+                });
+            }
         }
     }
     render() {
