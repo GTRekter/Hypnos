@@ -6,36 +6,84 @@ export default class Settings extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            currentTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-            endTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+            currentTime: new Date(),
             defaultBreaks: [
                 {
                     name: 'Coffee Break',
                     duration: 15,
-                    enabled: true
+                    icon: 'coffee-cup',
+                    enabled: true,
+                    selected: false
                 },
                 {
                     name: 'Lunch Break',
                     duration: 60,
-                    enabled: true
+                    icon: 'burger',
+                    enabled: true,
+                    selected: false
                 },
                 {
                     name: 'Lab Time',
                     duration: 45,
-                    enabled: true
+                    icon: 'microscope',
+                    enabled: true,
+                    selected: false
                 }
             ]
         };
-        this.updateEndTime = this.updateEndTime.bind(this);
+        this.onClickBreak = this.onClickBreak.bind(this);
+        this.onClickStartBreak = this.onClickStartBreak.bind(this);
     }
-    updateEndTime(duration) {
+    addMinutesToCurrentDate(minutes) {
         let newTime = new Date();
-        newTime.setMinutes(newTime.getMinutes() + duration);
+        newTime.setMinutes(newTime.getMinutes() + minutes);
+        return newTime;
+    }
+    onClickBreak(index) {
+        let newBreaks = this.state.defaultBreaks;
+        newBreaks.forEach((item, i) => {
+            if (i === index) {
+                item.selected = true;
+            } else {
+                item.selected = false;
+            }
+        });
         this.setState({
-            endTime: newTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
+            defaultBreaks: newBreaks
         });
     }
+    onClickStartBreak() {
+        let newTime = this.addMinutesToCurrentDate(this.state.defaultBreaks[this.state.defaultBreaks.findIndex(item => item.selected)].duration);
+        let endingTimestamp = newTime.getTime();
+        let breakName = this.state.defaultBreaks[this.state.defaultBreaks.findIndex(item => item.selected)].name;
+        this.props.history.push('/summary/' + endingTimestamp + '/' + breakName);
+    }
     render() {
+        let breaks = this.state.defaultBreaks.map((item, index) => {
+            let newTime = this.addMinutesToCurrentDate(item.duration);
+            let endTime = newTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            return (
+                <div className={"col-12 col-md-6 col-lg-4"} key={index}>
+                    <div className={"card card-break mb-3 " + (item.selected ? "selected" : "")} onClick={() => this.onClickBreak(index)}>
+                        <div className="row g-0">
+                            <div className="col-md-4 break-icon">
+                                <img src={require(`../images/icons/${item.icon}.png`).default} alt={item.name} />
+                            </div>
+                            <div className="col-md-8">
+                                <div className="card-body">
+                                    <h5 className="card-title">{item.name}</h5>
+                                    <p className="card-text">{item.duration} Minutes</p>
+                                    <p className="card-text">
+                                        <small className="text-muted">It will end at {endTime}</small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        });
+        let currentTimeString = this.state.currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
         return (
             <div className="full-height-container">
                 <div className="bg-white text-center octocat-container">
@@ -44,36 +92,15 @@ export default class Settings extends Component {
                 <div className='container py-5'>
                     <div className='row'>
                         <div className='col-12 text-white text-center pb-5'>
-                            <h1>It's {this.state.currentTime}. Time for a break?</h1>
+                            <h1>It's {currentTimeString}. Time for a break?</h1>
                         </div>
                     </div>
                     <div className='row text-center pb-5'>
-                        {this.state.defaultBreaks.map((item, index) => {
-                            return (
-                                <div className='col-12 col-md-6 col-lg-4' key={index}>
-                                    <div className="card card-break mb-3 bg-dark text-white" onClick={() => this.updateEndTime(item.duration)}>
-                                        <div className="row g-0">
-                                            <div className="col-md-4">
-                                                {/* <img src="..." class="img-fluid rounded-start" alt="..."> */}
-                                            </div>
-                                            <div className="col-md-8">
-                                                <div className="card-body">
-                                                    <h5 className="card-title">{item.name}</h5>
-                                                    <p className="card-text">{item.duration} Minutes</p>
-                                                    <p className="card-text">
-                                                        <small className="text-muted">It will end at </small>
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                        {breaks}
                     </div>
                     <div className='row text-center pb-5'>
-                        <div className='col-12 text-center pb-5'>
-                            <button className='btn btn-light btn-lg' onClick={() => this.props.history.push('/countdown')}>Start Break</button>
+                        <div className='col-12 text-center'>
+                            <button className='btn btn-light btn-lg' onClick={() => this.onClickStartBreak()}>Start Break</button>
                         </div>
                     </div>
                 </div>
