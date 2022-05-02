@@ -1,5 +1,5 @@
-Open-source application designed to help you provide unique countdown screens for breaks in virtual trainings and workshops.
-The application is currently deployed on Azure through a Azure Static App and reachable at the following [URL](https://thankful-wave-00d649910.1.azurestaticapps.net/).
+Open-source application designed to help you provide unique countdown screens for breaks in virtual training and workshops.
+The application is currently deployed on Azure through an Azure Static App and is available at the following [URL](https://thankful-wave-00d649910.1.azurestaticapps.net/).
 
 # Screens
 ## Homepage
