@@ -39,7 +39,12 @@ jobs:
       #    image: ${{ github.repository }}:$(date +%s)
       #    ignore-unchanged: true
       #    token: ${{ secrets.DOCKERHUB_PAT }}
-          
+  
+      - name: Run script
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          cat hypnos.sarif.json
+  
       - name: Run script
         if: ${{ github.event_name == 'pull_request' }}
         run: |
