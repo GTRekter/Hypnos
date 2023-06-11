@@ -4,30 +4,57 @@ on:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag hypnos:$(date +%s)
-    - name: Docker Scout
-      id: docker-scout
-      if: ${{ github.event_name == 'pull_request' }}
-      uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
-      with:
-        command: cves --ignore-base --format sarif --output hypnos.sarif.json
-        image: ${{ github.repository }}:$(date +%s)
-        ignore-unchanged: true
-        token: ${{ secrets.DOCKERHUB_PAT }}
-    - name: Run script
-      run: |
-        if [[ $(echo  hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
-          echo "There were vulnerabilities in your Docker image."
-          exit 1
-        else
-          echo "There were no vulnerabilities in your Docker image. Good job!"
-          exit 0
-        fi
 
-    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag hypnos:$(date +%s)
+
+      - name: Docker Scout
+        id: docker-scout
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+        with:
+          command: cves --ignore-base --format sarif --output hypnos.sarif.json
+          image: ${{ github.repository }}:$(date +%s)
+          ignore-unchanged: true
+          token: ${{ secrets.DOCKERHUB_PAT }}
+
+      - name: Read SARIF file
+        id: read-sarif
+        run: |
+          json=$(cat hypnos.sarif.json)
+          echo "::set-output name=json::$json"
+
+      - name: Run script
+        run: |
+          if [[ $(echo "${{ steps.read-sarif.outputs.json }}" | jq '.runs[0].results | length') -gt 0 ]]; then
+            echo "There were vulnerabilities in your Docker image."
+            exit 1
+          else
+            echo "There were no vulnerabilities in your Docker image. Good job!"
+            exit 0
+          fi
+
+      - name: Create Comment
+        uses: actions/github-script@v4
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const body = `
+            **JSON File Content:**
+            \`\`\`
+            ${JSON.stringify(json, null, 2)}
+            \`\`\`
+            `;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });
