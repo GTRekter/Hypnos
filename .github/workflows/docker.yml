@@ -16,7 +16,6 @@ jobs:
         run: docker build . --file Dockerfile --tag hypnos:$(date +%s)
 
       - name: Docker Scout
-        id: docker-scout
         if: ${{ github.event_name == 'pull_request' }}
         uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
         with:
@@ -24,16 +23,11 @@ jobs:
           image: ${{ github.repository }}:$(date +%s)
           ignore-unchanged: true
           token: ${{ secrets.DOCKERHUB_PAT }}
-
-      - name: Read SARIF file
-        id: read-sarif
-        run: |
-          json=$(cat hypnos.sarif.json)
-          echo "::set-output name=json::$json"
-
+          
       - name: Run script
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
-          if [[ $(echo "${{ steps.read-sarif.outputs.json }}" | jq '.runs[0].results | length') -gt 0 ]]; then
+          if [[ $(echo hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
             echo "There were vulnerabilities in your Docker image."
             exit 1
           else
@@ -42,10 +36,12 @@ jobs:
           fi
 
       - name: Create Comment
+        if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            json=$(cat hypnos.sarif.json)
             const body = `
             **JSON File Content:**
             \`\`\`
