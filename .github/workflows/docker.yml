@@ -44,7 +44,7 @@ jobs:
         id: prepare-comment
         run: |
           json=$(cat hypnos.sarif.json)
-          echo "::set-output name=json::$json"
+          echo "json=${json}" >> $GITHUB_OUTPUT
     
       - name: Create Comment
         if: ${{ github.event_name == 'pull_request' }}
@@ -52,11 +52,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const results = JSON.parse('${{ steps.prepare-comment.outputs.json }}');
             const body = `
             **Results:**
             \`\`\`
-            ${JSON.stringify(results, null, 2)}
+            ${{ steps.prepare-comment.outputs.json }}
             \`\`\`
             `;
             await github.issues.createComment({
