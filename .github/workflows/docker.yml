@@ -1,9 +1,13 @@
 name: Docker Scout
+
 on:
   push:
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
+
+env:
+  DOCKER_IMAGE_NAME: hypnos:$(date +%s)
 
 jobs:
   build:
@@ -13,7 +17,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag hypnos:$(date +%s)
+        run: docker build . --file Dockerfile --tag $DOCKER_IMAGE_NAME
     
       - name: Install Docker Scout
         run: |
@@ -73,8 +77,8 @@ jobs:
 
       - name: Tag the Docker image
         if: ${{ github.event_name == 'push' }}
-        run: docker image tag hypnos:$(date +%s) ${{ secrets.DOCKERHUB_USERNAME }}/hypnos:$(date +%s)
+        run: docker image tag $$DOCKER_IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME
 
       - name: Publish the Docker image
         if: ${{ github.event_name == 'push' }}
-        run: docker image push ${{ secrets.DOCKERHUB_USERNAME }}/hypnos:$(date +%s) 
+        run: docker image push ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME
