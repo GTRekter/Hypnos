@@ -10,19 +10,19 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${{ github.repository }}:$(date +%s)
+      run: docker build . --file Dockerfile --tag hypnos:$(date +%s)
     - name: Docker Scout
       id: docker-scout
       if: ${{ github.event_name == 'pull_request' }}
       uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
       with:
-        command: cves --ignore-base --format sarif --output ${{ github.repository }}.sarif.json
+        command: cves --ignore-base --format sarif --output hypnos.sarif.json
         image: ${{ github.repository }}:$(date +%s)
         ignore-unchanged: true
         token: ${{ secrets.DOCKERHUB_PAT }}
     - name: Run script
       run: |
-        if [[ $(echo "$json" | jq '.runs[0].results | length') -gt 0 ]]; then
+        if [[ $(echo  hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
           echo "There were vulnerabilities in your Docker image."
           exit 1
         else
