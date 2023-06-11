@@ -14,16 +14,31 @@ jobs:
 
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag hypnos:$(date +%s)
-
-      - name: Docker Scout
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+    
+      - name: Install Docker Scout
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+          sh install-scout.sh
+    
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
         with:
-          command: cves
-          args: --ignore-base --format sarif --output hypnos.sarif.json
-          image: ${{ github.repository }}:$(date +%s)
-          ignore-unchanged: true
-          token: ${{ secrets.DOCKERHUB_PAT }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
+
+      - name: Install Docker Scout
+        run: |
+          doscker scout cves --ignore-base --format sarif --output hypnos.sarif.json
+          
+      #- name: Docker Scout
+      #  if: ${{ github.event_name == 'pull_request' }}
+      #  uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+      #  with:
+      #    command: cves
+      #    args: --ignore-base --format sarif --output hypnos.sarif.json
+      #    image: ${{ github.repository }}:$(date +%s)
+      #    ignore-unchanged: true
+      #    token: ${{ secrets.DOCKERHUB_PAT }}
           
       - name: Run script
         if: ${{ github.event_name == 'pull_request' }}
