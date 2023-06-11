@@ -72,7 +72,9 @@ jobs:
           fi
 
       - name: Tag the Docker image
+        if: ${{ github.event_name == 'push' }}
         run: docker image tag hypnos:$(date +%s) ${{ secrets.DOCKERHUB_USERNAME }}/hypnos:$(date +%s)
 
       - name: Publish the Docker image
+        if: ${{ github.event_name == 'push' }}
         run: docker image push ${{ secrets.DOCKERHUB_USERNAME }}/hypnos:$(date +%s) 
