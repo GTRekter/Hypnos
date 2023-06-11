@@ -40,22 +40,17 @@ jobs:
       #    ignore-unchanged: true
       #    token: ${{ secrets.DOCKERHUB_PAT }}
   
-      - name: Prepare Comment Content
-        id: prepare-comment
-        run: |
-          json=$(cat hypnos.sarif.json)
-          echo "json=${json}" >> $GITHUB_OUTPUT
-    
       - name: Create Comment
         if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const fs = require('fs');
             const body = `
-            **Results:**
+            **JSON File Content:**
             \`\`\`
-            ${{ steps.prepare-comment.outputs.json }}
+            ${fs.readFileSync('hypnos.sarif.json', 'utf8')}
             \`\`\`
             `;
             await github.issues.createComment({
