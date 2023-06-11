@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  DOCKER_IMAGE_NAME: hypnos:$(date +%s)
+  DOCKER_IMAGE_NAME: hypnos:latest
 
 jobs:
   build:
