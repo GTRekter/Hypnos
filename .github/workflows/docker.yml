@@ -43,7 +43,7 @@ jobs:
       - name: Run script
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          if [[ $(echo hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
+          if [[ $(cat hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
             echo "There were vulnerabilities in your Docker image."
             exit 1
           else
