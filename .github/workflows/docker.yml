@@ -14,44 +14,67 @@ jobs:
 
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag hypnos:$(date +%s)
-
-      - name: Docker Scout
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
-        with:
-          command: cves
-          args: --ignore-base --format sarif --output hypnos.sarif.json
-          image: ${{ github.repository }}:$(date +%s)
-          ignore-unchanged: true
-          token: ${{ secrets.DOCKERHUB_PAT }}
-          
-      - name: Run script
-        if: ${{ github.event_name == 'pull_request' }}
+    
+      - name: Install Docker Scout
         run: |
-          if [[ $(echo hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
-            echo "There were vulnerabilities in your Docker image."
-            exit 1
-          else
-            echo "There were no vulnerabilities in your Docker image. Good job!"
-            exit 0
-          fi
+          curl -fsSL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh -o install-scout.sh
+          sh install-scout.sh
+    
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PAT }}
 
+      - name: Run Docker Scout
+        run: |
+          docker scout cves --ignore-base --format sarif --output hypnos.sarif.json
+          
+      #- name: Docker Scout
+      #  if: ${{ github.event_name == 'pull_request' }}
+      #  uses: docker/scout-action@dd36f5b0295baffa006aa6623371f226cc03e506
+      #  with:
+      #    command: cves
+      #    args: --ignore-base --format sarif --output hypnos.sarif.json
+      #    image: ${{ github.repository }}:$(date +%s)
+      #    ignore-unchanged: true
+      #    token: ${{ secrets.DOCKERHUB_PAT }}
+  
       - name: Create Comment
         if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            json=$(cat hypnos.sarif.json)
+            const fs = require('fs');
             const body = `
             **JSON File Content:**
             \`\`\`
-            ${JSON.stringify(json, null, 2)}
+            ${fs.readFileSync('hypnos.sarif.json', 'utf8')}
             \`\`\`
             `;
-            await github.rest.issues.createComment({
+            await github.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
               body: body
             });
+
+      - name: Check vulnerabilities
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if [[ $(cat hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
+            echo -e "\e[31mThere were vulnerabilities in your Docker image. Check the comments on your PR to know more.\e[0m"
+            exit 1
+          else
+            echo "There were no vulnerabilities in your Docker image. Good job!"
+            exit 0
+          fi
+
+      - name: Tag the Docker image
+        if: ${{ github.event_name == 'push' }}
+        run: docker image tag hypnos:$(date +%s) ${{ secrets.DOCKERHUB_USERNAME }}/hypnos:$(date +%s)
+
+      - name: Publish the Docker image
+        if: ${{ github.event_name == 'push' }}
+        run: docker image push ${{ secrets.DOCKERHUB_USERNAME }}/hypnos:$(date +%s) 
