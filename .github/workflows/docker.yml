@@ -20,5 +20,14 @@ jobs:
         image: ${{ github.repository }}:$(date +%s)
         ignore-unchanged: true
         token: ${{ secrets.DOCKERHUB_PAT }}
-    - 
+    - name: Run script
+      run: |
+        if [[ $(echo "$json" | jq '.runs[0].results | length') -gt 0 ]]; then
+          echo "There were vulnerabilities in your Docker image."
+          exit 1
+        else
+          echo "There were no vulnerabilities in your Docker image. Good job!"
+          exit 0
+        fi
+
     
