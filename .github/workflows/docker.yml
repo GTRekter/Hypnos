@@ -83,4 +83,4 @@ jobs:
 
       - name: Publish the Docker image
         if: ${{ github.event_name == 'push' }}
-        run: docker image push ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME
+        run: docker image push ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME 
