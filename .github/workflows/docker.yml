@@ -40,33 +40,17 @@ jobs:
       #    ignore-unchanged: true
       #    token: ${{ secrets.DOCKERHUB_PAT }}
   
-      - name: Run script
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          cat hypnos.sarif.json
-  
-      - name: Run script
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          if [[ $(cat hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
-            echo "There were vulnerabilities in your Docker image."
-            exit 1
-          else
-            echo "There were no vulnerabilities in your Docker image. Good job!"
-            exit 0
-          fi
-
       - name: Create Comment
         if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            json=$(cat hypnos.sarif.json)
+            const fs = require('fs');
             const body = `
             **JSON File Content:**
             \`\`\`
-            ${JSON.stringify(json, null, 2)}
+            ${fs.readFileSync('hypnos.sarif.json', 'utf8')}
             \`\`\`
             `;
             await github.rest.issues.createComment({
@@ -75,3 +59,16 @@ jobs:
               issue_number: context.issue.number,
               body: body
             });
+
+        
+      - name: Run script
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if [[ $(cat hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
+            echo "There were vulnerabilities in your Docker image. Check the comments on your PR to know more."
+            exit 1
+          else
+            echo "There were no vulnerabilities in your Docker image. Good job!"
+            exit 0
+          fi
+
