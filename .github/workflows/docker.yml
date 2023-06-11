@@ -71,3 +71,8 @@ jobs:
             exit 0
           fi
 
+      - name: Tag the Docker image
+        run: docker image tag hypnos:$(date +%s) ${{ secrets.DOCKERHUB_USERNAME }}/hypnos:$(date +%s)
+
+      - name: Publish the Docker image
+        run: docker image push ${{ secrets.DOCKERHUB_USERNAME }}/hypnos:$(date +%s) 
