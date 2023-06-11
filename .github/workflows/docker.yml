@@ -40,17 +40,24 @@ jobs:
       #    ignore-unchanged: true
       #    token: ${{ secrets.DOCKERHUB_PAT }}
   
+      - name: Prepare Comment Content
+        id: prepare-comment
+        run: |
+          json=$(cat hypnos.sarif.json)
+          results=$(echo "$json" | jq '.runs[0].results')
+          echo "::set-output name=results::$results"
+    
       - name: Create Comment
         if: ${{ github.event_name == 'pull_request' }}
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const fs = require('fs');
+            const results = JSON.parse('${{ steps.prepare-comment.outputs.results }}');
             const body = `
-            **JSON File Content:**
+            **Results:**
             \`\`\`
-            ${fs.readFileSync('hypnos.sarif.json', 'utf8')}
+            ${JSON.stringify(results, null, 2)}
             \`\`\`
             `;
             await github.issues.createComment({
@@ -60,8 +67,7 @@ jobs:
               body: body
             });
 
-        
-      - name: Run script
+      - name: Check vulnerabilities
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           if [[ $(cat hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
