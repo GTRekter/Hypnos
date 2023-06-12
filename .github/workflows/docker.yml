@@ -45,9 +45,20 @@ jobs:
       #    image: ${{ github.repository }}:$(date +%s)
       #    ignore-unchanged: true
       #    token: ${{ secrets.DOCKERHUB_PAT }}
+      
+      - name: Check vulnerabilities
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if [[ $(cat hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
+            echo -e "\e[31mThere were vulnerabilities in your Docker image. Check the comments on your PR to know more.\e[0m"
+            echo "fail_workflow=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "There were no vulnerabilities in your Docker image. Good job!"
+            echo "fail_workflow=false" >> "$GITHUB_OUTPUT"
+          fi
   
       - name: Create Comment
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && steps.check_vulnerabilities.outputs.fail_workflow == 'true' }}
         uses: actions/github-script@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -66,16 +77,9 @@ jobs:
               body: body
             });
 
-      - name: Check vulnerabilities
-        if: ${{ github.event_name == 'pull_request' }}
-        run: |
-          if [[ $(cat hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
-            echo -e "\e[31mThere were vulnerabilities in your Docker image. Check the comments on your PR to know more.\e[0m"
-            exit 1
-          else
-            echo "There were no vulnerabilities in your Docker image. Good job!"
-            exit 0
-          fi
+      - name: Fail Workflow
+        if: ${{ github.event_name == 'pull_request' && steps.check_vulnerabilities.outputs.fail_workflow == 'true' }}
+        run: exit 1
 
       - name: Tag the Docker image
         if: ${{ github.event_name == 'push' }}
