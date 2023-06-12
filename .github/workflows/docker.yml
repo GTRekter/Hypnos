@@ -47,6 +47,7 @@ jobs:
       #    token: ${{ secrets.DOCKERHUB_PAT }}
       
       - name: Check vulnerabilities
+        id: check_vulnerabilities
         if: ${{ github.event_name == 'pull_request' }}
         run: |
           if [[ $(cat hypnos.sarif.json | jq '.runs[0].results | length') -gt 0 ]]; then
