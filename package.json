@@ -25,6 +25,8 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
+    "predeploy": "yarn run build",
+    "deploy": "gh-pages -d build",
     "cypress": "cypress open",
     "start-dev": "react-scripts --openssl-legacy-provider start",
     "start": "react-scripts start",
@@ -54,5 +56,8 @@
     "suiteNameTemplate": "{filepath}",
     "outputDirectory": ".",
     "outputName": "junit.xml"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
   }
 }
